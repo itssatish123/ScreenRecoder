@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Screen Recording</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="stylely.css">
+</head>
+<style>
+*{
+    background-color: black;
+    color: white;
+}
+
+.controls_button{
+    display: flex;
+    justify-items: center;
+
+}
+.screenRecording{
+    display: flex;
+    justify-items: center;
+}
+
+/* From Uiverse.io by adamgiebl */ 
+button {
+    display: flex;
+    align-items: center;
+    font-family: inherit;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 17px;
+    padding: 0.8em 1.3em 0.8em 0.9em;
+    color: white;
+    background: #ad5389;
+    background: linear-gradient(to right, #0f0c29, #302b63, #24243e);
+    border: none;
+    letter-spacing: 0.05em;
+    border-radius: 16px;
+  }
+  
+  button svg {
+    margin-right: 3px;
+    transform: rotate(30deg);
+    transition: transform 0.5s cubic-bezier(0.76, 0, 0.24, 1);
+  }
+  
+  button span {
+    transition: transform 0.5s cubic-bezier(0.76, 0, 0.24, 1);
+  }
+  
+  button:hover svg {
+    transform: translateX(5px) rotate(90deg);
+  }
+  
+  button:hover span {
+    transform: translateX(7px);
+  }
+  
+  #downloadBtn{
+
+  }
+
+
+</style>
+<body>
+    <div class="controls_button">
+        <a id="downloadBtn" download="recorded-video.webm" style="display:none;  text-decoration: none;" ><button >Download Video</button></a>
+        
+        <button id="startBtn">Start Recording</button>
+        <button id="stopBtn" disabled>Stop Recording</button>
+    </div>
+        <video id="video"  width="720px" height="360px" controls></video>
+
+    <script>
+const startBtn = document.getElementById('startBtn');
+const stopBtn = document.getElementById('stopBtn');
+const video = document.getElementById('video');
+const downloadBtn = document.getElementById('downloadBtn');
+
+let mediaRecorder;
+let recordedChunks = [];
+
+startBtn.addEventListener('click', async () => {
+    try {
+        // Request screen capture
+        const stream = await navigator.mediaDevices.getDisplayMedia({
+            video: true
+        });
+
+        // Create MediaRecorder instance
+        mediaRecorder = new MediaRecorder(stream);
+
+        // Handle data available event
+        mediaRecorder.ondataavailable = (event) => {
+            if (event.data.size > 0) {
+                recordedChunks.push(event.data);
+            }
+        };
+
+        // Handle stop event
+        mediaRecorder.onstop = () => {
+            const blob = new Blob(recordedChunks, {
+                type: 'video/webm'
+            });
+            recordedChunks = [];
+            const videoUrl = URL.createObjectURL(blob);
+            video.src = videoUrl;
+            downloadBtn.href = videoUrl;
+            downloadBtn.style.display = 'block'; // Show download link
+        };
+
+        // Start recording
+        mediaRecorder.start();
+
+        // Update button states
+        startBtn.disabled = true;
+        stopBtn.disabled = false;
+    } catch (err) {
+        console.error('Error capturing screen: ', err);
+    }
+});
+
+stopBtn.addEventListener('click', () => {
+    // Stop recording
+    if (mediaRecorder) {
+        mediaRecorder.stop();
+        mediaRecorder.stream.getTracks().forEach(track => track.stop());
+    }
+
+    // Update button states
+    startBtn.disabled = false;
+    stopBtn.disabled = true;
+});
+
+    </script>
+</body>
+</html>
