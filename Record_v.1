@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Screen Recording</title>
+    <link rel="stylesheet" href="Record.css">
+    <link rel="stylesheet" href="stylely.css">
+</head>
+<style>
+/* *{
+    background-color: black;
+    color: white;
+} */
+
+body {
+    background-color: black;
+    color: white;
+height: auto;
+width: auto;
+}
+
+.controls_button{
+    display: flex;
+    justify-items: center;
+width: auto;
+}
+
+.button_1{
+    width: auto;
+    margin: 3px;
+}
+
+.controls_button:hover{
+    display: flex;
+    justify-items: center;
+    color: aquamarine;
+    padding: 5px;
+
+}
+
+.controls_button  #downloadBtn:hover{
+    color: grey;
+}
+.screenRecording{
+    display: flex;
+    justify-items: center;
+}
+
+/* From Uiverse.io by adamgiebl */ 
+button {
+    display: flex;
+    align-items: center;
+    font-family: inherit;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 17px;
+    padding: 0.8em 1.3em 0.8em 0.9em;
+    color: white;
+    background: #ad5389;
+    background: linear-gradient(to right, #0f0c29, #302b63, #24243e);
+    border: none;
+    letter-spacing: 0.05em;
+    border-radius: 16px;
+  }
+  
+  button svg {
+    margin-right: 3px;
+    transform: rotate(30deg);
+    transition: transform 0.5s cubic-bezier(0.76, 0, 0.24, 1);
+  }
+  
+  button span {
+    transition: transform 0.5s cubic-bezier(0.76, 0, 0.24, 1);
+  }
+  
+  button:hover svg {
+    transform: translateX(5px) rotate(90deg);
+  }
+  
+  button:hover span {
+    transform: translateX(7px);
+  }
+  
+  #downloadBtn::after{
+font-size: larger;
+font-weight: bold;
+padding: 5px;
+color: #ad5389;
+  }
+/* darkmode*/
+.theme-checkbox {
+  --toggle-size: 16px;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  width: 6.25em;
+  height: 3.125em;
+  background: -webkit-gradient(linear, left top, right top, color-stop(50%, #eeb7b7), color-stop(50%, #2a2a2a)) no-repeat;
+  background: -o-linear-gradient(left, #f3d4d4 50%, #2a2a2a 50%) no-repeat;
+  background: linear-gradient(to right, #e4cccc 50%, #2a2a2a 50%) no-repeat;
+  background-size: 205%;
+  background-position: 0;
+  -webkit-transition: 0.4s;
+  -o-transition: 0.4s;
+  transition: 0.4s;
+  border-radius: 99em;
+  position: relative;
+  cursor: pointer;
+  font-size: var(--toggle-size);
+}
+
+.theme-checkbox::before {
+  content: "";
+  width: 2.25em;
+  height: 2.25em;
+  position: absolute;
+  top: 0.438em;
+  left: 0.438em;
+  background: -webkit-gradient(linear, left top, right top, color-stop(50%, #efefef), color-stop(50%, #2a2a2a)) no-repeat;
+  background: -o-linear-gradient(left, #efefef 50%, #2a2a2a 50%) no-repeat;
+  background: linear-gradient(to right, #efefef 50%, #2a2a2a 50%) no-repeat;
+  background-size: 205%;
+  background-position: 100%;
+  border-radius: 50%;
+  -webkit-transition: 0.4s;
+  -o-transition: 0.4s;
+  transition: 0.4s;
+}
+
+.theme-checkbox:checked::before {
+  left: calc(100% - 2.25em - 0.438em);
+  background-position: 0;
+}
+
+.theme-checkbox:checked {
+  background-position: 100%;
+}
+
+
+ 
+
+body.dark-mode {
+    background-color: rgb(241, 238, 238);
+    color:rgb(22, 21, 21);
+}
+
+
+
+
+</style>
+<body>
+    <div class="controls_button">
+        <a id="downloadBtn" download="recorded-video.webm" style="text-decoration: none;" ><button >Download Video</button></a>
+        
+        <button    class="button_1"  id="startBtn"> 
+           
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" viewBox="0 0 24 24" height="24" fill="none" class="svg-icon"><g stroke-width="2" stroke-linecap="round" stroke="#ff342b"><rect y="3" x="9" width="6" rx="3" height="11"></rect><path d="m12 18v3"></path><path d="m8 21h8"></path><path d="m19 11c0 3.866-3.134 7-7 7-3.86599 0-7-3.134-7-7"></path></g></svg>
+            
+            
+            Start Recording</button>
+        <button   class="button_1"  id="stopBtn" disabled>Stop Recording</button>
+        <input type="checkbox"    id="toggle-dark-mode"  class="theme-checkbox">
+    </div>
+  
+        <video id="video"  width="720px" height="360px" controls></video>
+      
+
+
+    <script>
+const startBtn = document.getElementById('startBtn');
+const stopBtn = document.getElementById('stopBtn');
+const video = document.getElementById('video');
+const downloadBtn = document.getElementById('downloadBtn');
+
+let mediaRecorder;
+let recordedChunks = [];
+
+startBtn.addEventListener('click', async () => {
+    try {
+        // Request screen capture
+        const stream = await navigator.mediaDevices.getDisplayMedia({
+            video: true
+        });
+
+        // Create MediaRecorder instance
+        mediaRecorder = new MediaRecorder(stream);
+
+        // Handle data available event
+        mediaRecorder.ondataavailable = (event) => {
+            if (event.data.size > 0) {
+                recordedChunks.push(event.data);
+            }
+        };
+
+        // Handle stop event
+        mediaRecorder.onstop = () => {
+            const blob = new Blob(recordedChunks, {
+                type: 'video/webm'
+            });
+            recordedChunks = [];
+            const videoUrl = URL.createObjectURL(blob);
+            video.src = videoUrl;
+            downloadBtn.href = videoUrl;
+            downloadBtn.style.display = 'block'; // Show download link
+        };
+
+        // Start recording
+        mediaRecorder.start();
+
+        // Update button states
+        startBtn.disabled = true;
+        stopBtn.disabled = false;
+    } catch (err) {
+        console.error('Error capturing screen: ', err);
+    }
+});
+
+stopBtn.addEventListener('click', () => {
+    // Stop recording
+    if (mediaRecorder) {
+        mediaRecorder.stop();
+        mediaRecorder.stream.getTracks().forEach(track => track.stop());
+    }
+
+    // Update button states
+    startBtn.disabled = false;
+    stopBtn.disabled = true;
+});
+
+
+// dark mode
+document.addEventListener('DOMContentLoaded', () => {
+    const toggleButton = document.getElementById('toggle-dark-mode');
+    const darkModeClass = 'dark-mode';
+
+    // Check local storage for saved theme preference
+    if (localStorage.getItem('theme') === 'dark') {
+        document.body.classList.add(darkModeClass);
+    }
+
+    // Toggle dark mode on button click
+    toggleButton.addEventListener('click', () => {
+        document.body.classList.toggle(darkModeClass);
+        
+        // Save the user's preference to local storage
+        if (document.body.classList.contains(darkModeClass)) {
+            localStorage.setItem('theme', 'dark');
+        } else {
+            localStorage.setItem('theme', 'light');
+        }
+    });
+});
+
+
+    </script>
+</body>
+</html>
